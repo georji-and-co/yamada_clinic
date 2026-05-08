@@ -355,7 +355,7 @@ section { padding: 48px 16px; overflow: hidden; }
 .lunch-bar {
   display: none; /* JS で open クラスが付いたとき表示 */
   position: fixed;
-  top: var(--offset);
+  top: 0; /* JS で実測値を上書き */
   left: 0;
   width: 100%;
   z-index: 880;

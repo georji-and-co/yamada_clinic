@@ -17,19 +17,15 @@ function getClinicStatus() {
   const now = new Date();
   const day = now.getDay();
   const t   = now.getHours() * 60 + now.getMinutes();
-
   const AM_S = 9  * 60;
   const AM_E = 12 * 60;
   const LN_E = 15 * 60;
   const PM_E = 18 * 60;
-
   if (day === 0) return { open: false, lunch: false, label: '本日休診（日曜）' };
-
   if (day === 3 || day === 6) {
     if (t >= AM_S && t < AM_E) return { open: true,  lunch: false, label: '診療中（午前）' };
     return { open: false, lunch: false, label: '受付終了 / 午後休診' };
   }
-
   if (t >= AM_S && t < AM_E) return { open: true,  lunch: false, label: '診療中（午前）' };
   if (t >= AM_E && t < LN_E) return { open: false, lunch: true,  label: '休診中' };
   if (t >= LN_E && t < PM_E) return { open: true,  lunch: false, label: '診療中（午後）' };
@@ -44,10 +40,11 @@ document.querySelectorAll('.status-chip').forEach(el => {
   el.textContent = status.label;
 });
 
-/* ── 昼バー：ヘッダー直後に fixed 挿入、コンテンツを押し下げ ── */
-const LUNCH_BAR_H = 44; // px（CSS .lunch-bar の min-height に合わせる）
-
+/* ── 昼バー ── */
 if (status.lunch) {
+  const BAR_H = 44;
+
+  /* バー生成 */
   const bar = document.createElement('div');
   bar.className = 'lunch-bar open';
   bar.innerHTML = `
@@ -62,37 +59,32 @@ if (status.lunch) {
     </p>
     <span class="lunch-bar-badge">12:00〜15:00</span>
   `;
-
-  /* site-header の直後に挿入 */
-  const header = document.querySelector('.site-header');
-  if (header && header.nextSibling) {
-    header.parentNode.insertBefore(bar, header.nextSibling);
-  } else {
-    document.body.append(bar);
-  }
+  document.body.appendChild(bar);
 
   /*
-   * fixed 要素はレイアウトに影響しないので、
-   * ページ先頭のコンテンツ（page-hero / main-hero）の
-   * margin-top を LUNCH_BAR_H 分だけ追加する
+   * バーの top = デモバナー高さ + ヘッダー高さ（実測）
+   * コンテンツ先頭の margin-top にバー高さ分を加算して重なりを防ぐ
    */
-  const firstContent = document.querySelector(
-    '.main-hero, .page-hero, .sp-menu + *, header + *'
-  );
-  if (firstContent) {
-    const current = parseInt(getComputedStyle(firstContent).marginTop) || 0;
-    firstContent.style.marginTop = (current + LUNCH_BAR_H) + 'px';
+  function applyLunchBarPosition() {
+    const demoH   = document.querySelector('.demo-banner')?.offsetHeight  || 34;
+    const headerH = document.querySelector('.site-header')?.offsetHeight  || 72;
+    bar.style.top = (demoH + headerH) + 'px';
+
+    /* 先頭コンテンツを押し下げ */
+    const first = document.querySelector('.main-hero, .page-hero');
+    if (first) {
+      first.style.marginTop = (demoH + headerH + BAR_H) + 'px';
+    }
+
+    /* SP メニューも追従 */
+    if (spMenu) spMenu.style.top = (demoH + headerH + BAR_H) + 'px';
   }
 
-  /* sp-menu の top も押し下げ（ヘッダー下端 + 昼バー分） */
-  if (spMenu) {
-    const headerH = document.querySelector('.site-header')?.offsetHeight || 72;
-    const demoH   = document.querySelector('.demo-banner')?.offsetHeight  || 34;
-    spMenu.style.top = (demoH + headerH + LUNCH_BAR_H) + 'px';
-  }
+  applyLunchBarPosition();
+  window.addEventListener('resize', applyLunchBarPosition);
 }
 
-/* ── フェードイン（IntersectionObserver）── */
+/* ── フェードイン ── */
 const fadeEls = document.querySelectorAll('.fade-in');
 if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver(entries => {
