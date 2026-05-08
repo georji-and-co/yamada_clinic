@@ -350,3 +350,39 @@ section { padding: 48px 16px; overflow: hidden; }
 .access-label { font-size: 11px; font-weight: 700; color: var(--terra); letter-spacing: 0.08em; text-transform: uppercase; }
 .access-val { font-size: 14px; font-weight: 500; color: var(--text); margin-top: 2px; min-width: 0; }
 .access-val a { color: var(--green); text-decoration: underline; }
+
+/* ── 昼の休憩時間 スティッキーバー ── */
+.lunch-bar {
+  display: none; /* JS で open クラスが付いたとき表示 */
+  position: fixed;
+  top: var(--offset);
+  left: 0;
+  width: 100%;
+  z-index: 880;
+  background: #fffbf0;
+  border-bottom: 2px solid #e8a020;
+  padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(232,160,32,.15);
+  animation: slideDown .3s ease;
+}
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.lunch-bar.open { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }
+.lunch-bar-icon {
+  width: 24px; height: 24px; flex-shrink: 0;
+  background: #e8a020; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.lunch-bar-icon svg { width: 14px !important; height: 14px !important; color: #fff; }
+.lunch-bar-text {
+  font-size: 13px; font-weight: 700; color: #7a5200;
+  letter-spacing: 0.03em; line-height: 1.4;
+}
+.lunch-bar-text strong { color: #e8a020; }
+.lunch-bar-badge {
+  background: #e8a020; color: #fff;
+  font-size: 10px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
