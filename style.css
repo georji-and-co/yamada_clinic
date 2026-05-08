@@ -369,7 +369,7 @@ section { padding: 48px 16px; overflow: hidden; }
   from { transform: translateY(-100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-.lunch-bar.open { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }
+.lunch-bar.open { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; }
 .lunch-bar-icon {
   width: 24px; height: 24px; flex-shrink: 0;
   background: #e8a020; border-radius: 50%;

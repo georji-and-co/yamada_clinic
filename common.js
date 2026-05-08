@@ -12,27 +12,26 @@ if (hamburger && spMenu) {
   });
 }
 
-/* ── 診療ステータス & 昼の休憩時間バー ── */
+/* ── 診療ステータス ── */
 function getClinicStatus() {
-  const now  = new Date();
-  const day  = now.getDay();   // 0=日,1=月…6=土
-  const t    = now.getHours() * 60 + now.getMinutes();
+  const now = new Date();
+  const day = now.getDay();
+  const t   = now.getHours() * 60 + now.getMinutes();
 
-  const AM_S = 9  * 60;  // 9:00
-  const AM_E = 12 * 60;  // 12:00
-  const LN_E = 15 * 60;  // 15:00（昼休憩終わり）
-  const PM_E = 18 * 60;  // 18:00
+  const AM_S = 9  * 60;
+  const AM_E = 12 * 60;
+  const LN_E = 15 * 60;
+  const PM_E = 18 * 60;
 
   if (day === 0) return { open: false, lunch: false, label: '本日休診（日曜）' };
 
-  if (day === 3 || day === 6) { // 水・土：午前のみ
+  if (day === 3 || day === 6) {
     if (t >= AM_S && t < AM_E) return { open: true,  lunch: false, label: '診療中（午前）' };
     return { open: false, lunch: false, label: '受付終了 / 午後休診' };
   }
 
-  // 月火木金
   if (t >= AM_S && t < AM_E) return { open: true,  lunch: false, label: '診療中（午前）' };
-  if (t >= AM_E && t < LN_E) return { open: false, lunch: true,  label: '昼の休憩時間中' };
+  if (t >= AM_E && t < LN_E) return { open: false, lunch: true,  label: '休診中' };
   if (t >= LN_E && t < PM_E) return { open: true,  lunch: false, label: '診療中（午後）' };
   return { open: false, lunch: false, label: '受付終了' };
 }
@@ -45,11 +44,12 @@ document.querySelectorAll('.status-chip').forEach(el => {
   el.textContent = status.label;
 });
 
-/* 昼の休憩時間バー：全ページに動的挿入 */
+/* ── 昼バー：ヘッダー直後に fixed 挿入、コンテンツを押し下げ ── */
+const LUNCH_BAR_H = 44; // px（CSS .lunch-bar の min-height に合わせる）
+
 if (status.lunch) {
-  // バー要素を生成
   const bar = document.createElement('div');
-  bar.className = 'lunch-bar';
+  bar.className = 'lunch-bar open';
   bar.innerHTML = `
     <div class="lunch-bar-icon">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -62,14 +62,34 @@ if (status.lunch) {
     </p>
     <span class="lunch-bar-badge">12:00〜15:00</span>
   `;
-  document.body.prepend(bar);
-  // CSS offset が重なるので --offset を 40px 押し下げる
-  document.documentElement.style.setProperty(
-    '--offset',
-    `calc(var(--demo-h) + var(--header-h) + 40px)`
+
+  /* site-header の直後に挿入 */
+  const header = document.querySelector('.site-header');
+  if (header && header.nextSibling) {
+    header.parentNode.insertBefore(bar, header.nextSibling);
+  } else {
+    document.body.append(bar);
+  }
+
+  /*
+   * fixed 要素はレイアウトに影響しないので、
+   * ページ先頭のコンテンツ（page-hero / main-hero）の
+   * margin-top を LUNCH_BAR_H 分だけ追加する
+   */
+  const firstContent = document.querySelector(
+    '.main-hero, .page-hero, .sp-menu + *, header + *'
   );
-  // 少し遅らせて open クラスを付与（アニメーション）
-  requestAnimationFrame(() => bar.classList.add('open'));
+  if (firstContent) {
+    const current = parseInt(getComputedStyle(firstContent).marginTop) || 0;
+    firstContent.style.marginTop = (current + LUNCH_BAR_H) + 'px';
+  }
+
+  /* sp-menu の top も押し下げ（ヘッダー下端 + 昼バー分） */
+  if (spMenu) {
+    const headerH = document.querySelector('.site-header')?.offsetHeight || 72;
+    const demoH   = document.querySelector('.demo-banner')?.offsetHeight  || 34;
+    spMenu.style.top = (demoH + headerH + LUNCH_BAR_H) + 'px';
+  }
 }
 
 /* ── フェードイン（IntersectionObserver）── */
